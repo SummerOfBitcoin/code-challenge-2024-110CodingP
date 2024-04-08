@@ -15,3 +15,6 @@ Second, we need to validate the transactions using that info, but then how do we
 Third,build the block
 Fourth, we need to find the nonce which passes difficulty and hence the hash
 We need to output the coinbase txn also
+
+
+// since cpp doesn't have a function for iterating over files in a directory had to make "txns.txt".
