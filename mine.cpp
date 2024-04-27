@@ -2,66 +2,93 @@
 #include <fstream>
 #include <string>
 #include <vector>
-using namespace std;
+#include <json.hpp>
 
+using json = nlohmann::json;
 
 struct Output {
-  int Amount;
-  string ScriptPubKey;
-}
+  int amount;
+  std::string scriptPubKey;
+  std::string scriptPubKeyAsm;
+  std::string scriptPubKeyType;
+  std::string scriptPubKeyAddress;
+};
 
 struct Input {
-  string txId;
+  std::string txId;
   int vOut;
-  string scriptSig;
-  string sequence;
-  vector<string> witness;
-  vector<Output> prevout;
-  string scriptSigAsm;
+  std::string scriptSig;
+  int sequence;
+  std::vector<std::string> witness;
+  Output prevout;
+  std::string scriptSigAsm;
   bool isCoinbase;
-}
+};
 
 struct Txn {
   int version;
   int locktime;
-  vector<Input> vin;
-  vector<Output> vout;
+  std::vector<Input> vin;
+  std::vector<Output> vout;
 
+};
+
+void from_json(const json& j, Output& p) {
+  j.at("scriptpubkey").get_to(p.scriptPubKey);
+  j.at("scriptpubkey_asm").get_to(p.scriptPubKeyAsm);
+  j.at("scriptpubkey_type").get_to(p.scriptPubKeyType);
+  j.at("scriptpubkey_address").get_to(p.scriptPubKeyAddress);
+  j.at("value").get_to(p.amount);
 }
 
-string serialise(string content) {
-    string serialised;
-    int sz = content.size();
-    return serialised;
+void from_json(const json& j, Input& p) {
+  j.at("txid").get_to(p.txId);
+  j.at("vout").get_to(p.vOut);
+  j.at("prevout").get_to(p.prevout);
+  j.at("scriptsig").get_to(p.scriptSig);
+  j.at("scriptsig_asm").get_to(p.scriptSigAsm);
+  j.at("witness").get_to(p.witness);
+  j.at("is_coinbase").get_to(p.isCoinbase);
+  j.at("sequence").get_to(p.sequence);
+}
+
+void from_json(const json& j, Txn& p) {
+  j.at("version").get_to(p.version);
+  j.at("locktime").get_to(p.locktime);
+  j.at("vin").get_to(p.vin);
+  j.at("vout").get_to(p.vout);
+}
+
+std::string serialise(Txn t) {
+    std::string serialised;
+    return t.vin[0].scriptSig;
 }
 
 int main() {
 
-    freopen("output.txt","w",stdout);
+  freopen("output.txt","w",stdout);
+  std::ifstream myfile("txns.txt");
+  std::string filename;
+  std::vector<std::string> txns;
 
-    ifstream myfile;
-    myfile.open("txns.txt");
-    string filename;
-    vector<string> txns;
+  while (myfile.good()) {
+      getline(myfile,filename);
+      txns.push_back(filename);
+  }
 
-    while (myfile.good()) {
-        getline(myfile,filename);
-        txns.push_back(filename);
-    }
+  myfile.close();
+
+  for (std::string txn: txns) {//man this outer loop is running approx 8000 times!
+    std::string path = "mempool/" + txn;
+    myfile.open(path);
+    json data = json::parse(myfile);
+    Txn t;
+    from_json(data , t);
+    std::cout<<serialise(t)<<std::endl;
+    
     myfile.close();
+  }
 
-    for (string txn: txns) {//man this outer loop is running approx 8000 times!
-      string path = "mempool/" + txn;
-      myfile.open(path);
-      string content;
-      while (myfile.good()) {
-        string line;
-        getline(myfile,line);
-        content+=line;
-      }
-      serialise(content);
 
-      myfile.close();
-    }
-    return 0;
+  return 0;
 }
