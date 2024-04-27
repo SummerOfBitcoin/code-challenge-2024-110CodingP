@@ -37,7 +37,9 @@ void from_json(const json& j, Output& p) {
   j.at("scriptpubkey").get_to(p.scriptPubKey);
   j.at("scriptpubkey_asm").get_to(p.scriptPubKeyAsm);
   j.at("scriptpubkey_type").get_to(p.scriptPubKeyType);
-  j.at("scriptpubkey_address").get_to(p.scriptPubKeyAddress);
+  if (j.contains("scriptpubkey_address")) {
+    j.at("scriptpubkey_address").get_to(p.scriptPubKeyAddress);
+  }
   j.at("value").get_to(p.amount);
 }
 
@@ -47,7 +49,9 @@ void from_json(const json& j, Input& p) {
   j.at("prevout").get_to(p.prevout);
   j.at("scriptsig").get_to(p.scriptSig);
   j.at("scriptsig_asm").get_to(p.scriptSigAsm);
-  j.at("witness").get_to(p.witness);
+  if (j.contains("witness")) {
+    j.at("witness").get_to(p.witness);
+  }
   j.at("is_coinbase").get_to(p.isCoinbase);
   j.at("sequence").get_to(p.sequence);
 }

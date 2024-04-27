@@ -18,3 +18,6 @@ We need to output the coinbase txn also
 
 
 // since cpp doesn't have a function for iterating over files in a directory had to make "txns.txt".
+
+//not all have witness
+//not all have scriptpubkey_address
