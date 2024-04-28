@@ -3,6 +3,10 @@
 #include <string>
 #include <vector>
 #include <json.hpp>
+#include <sstream>
+#include <ios>
+
+#define VERSION_MOD 4294967296
 
 using json = nlohmann::json;
 
@@ -30,7 +34,7 @@ struct Txn {
   int locktime;
   std::vector<Input> vin;
   std::vector<Output> vout;
-
+  bool is_segwit;
 };
 
 void from_json(const json& j, Output& p) {
@@ -63,9 +67,42 @@ void from_json(const json& j, Txn& p) {
   j.at("vout").get_to(p.vout);
 }
 
+std::string big_to_little(std::string s, int len) {
+  std::string little;
+  for (int i=len-1;i>=0;i-=2) {
+    little +=s[i-1];
+    little +=s[i];
+  }
+  return little;
+}
+
 std::string serialise(Txn t) {
-    std::string serialised;
-    return t.vin[0].scriptSig;
+  std::string serialised;
+
+  //version
+  int version = t.version%(VERSION_MOD);
+  std::stringstream ss;
+  ss<<std::setfill('0')<<std::setw(8)<<std::hex<<version;
+  serialised+= big_to_little(ss.str(),8);
+  ss.str("");
+
+  //input
+  int in_sz = t.vin.size();
+  int temp=in_sz;
+  int exp=1;
+  while (true) {
+    temp=temp/256;
+    if (temp==0) {
+      break;
+    }
+    else {
+      exp++;
+    }
+  }
+  ss<<std::setfill('0')<<std::setw(2*exp)<<in_sz;
+  serialised+=ss.str();
+
+  return serialised;
 }
 
 int main() {
@@ -76,8 +113,8 @@ int main() {
   std::vector<std::string> txns;
 
   while (myfile.good()) {
-      getline(myfile,filename);
-      txns.push_back(filename);
+    getline(myfile,filename);
+    txns.push_back(filename);
   }
 
   myfile.close();
