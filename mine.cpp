@@ -142,7 +142,10 @@ std::string serialise(Txn t) {
 
     serialised += t.vout[i].scriptPubKey ;
   }
-
+  ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.locktime;
+  serialised+= big_to_little(ss.str(),8);
+  ss.str("");
+  
   return serialised;
 }
 
