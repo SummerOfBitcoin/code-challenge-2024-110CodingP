@@ -97,7 +97,7 @@ std::string serialise(Txn t) {
   serialised+= big_to_little(ss.str(),8);
   ss.str("");
 
-  //input
+  //inputs
   int in_sz = t.vin.size();
   int exp = compact_exp(in_sz);
   ss<<std::setfill('0')<<std::setw(2*exp)<<in_sz;
@@ -124,6 +124,23 @@ std::string serialise(Txn t) {
     ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.vin[i].sequence;
     serialised+= big_to_little(ss.str(),8);
     ss.str("");
+  }
+
+  //outputs
+  int out_sz = t.vout.size();
+  exp = compact_exp(out_sz);
+  ss<<std::setfill('0')<<std::setw(2*exp)<<out_sz;
+  serialised+=ss.str();
+  ss.str("");
+
+  for (int i=0;i<out_sz;i++) {
+    int script_pub_sz =(t.vout[i].scriptPubKey).size();
+    exp = compact_exp(script_pub_sz);
+    ss<<std::setfill('0')<<std::setw(2*exp)<<script_pub_sz;
+    serialised+=ss.str();
+    ss.str("");
+
+    serialised += t.vout[i].scriptPubKey ;
   }
 
   return serialised;
