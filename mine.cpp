@@ -6,8 +6,6 @@
 #include <sstream>
 #include <ios>
 
-#define VERSION_MOD 4294967296
-
 using json = nlohmann::json;
 
 struct Output {
@@ -76,31 +74,57 @@ std::string big_to_little(std::string s, int len) {
   return little;
 }
 
-std::string serialise(Txn t) {
-  std::string serialised;
-
-  //version
-  int version = t.version%(VERSION_MOD);
-  std::stringstream ss;
-  ss<<std::setfill('0')<<std::setw(8)<<std::hex<<version;
-  serialised+= big_to_little(ss.str(),8);
-  ss.str("");
-
-  //input
-  int in_sz = t.vin.size();
-  int temp=in_sz;
+int compact_exp(int n) {
   int exp=1;
   while (true) {
-    temp=temp/256;
-    if (temp==0) {
+    n=n/256;
+    if (n==0) {
       break;
     }
     else {
       exp++;
     }
   }
+  return exp;
+}
+
+std::string serialise(Txn t) {
+  std::string serialised;
+
+  //version
+  std::stringstream ss;
+  ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.version;
+  serialised+= big_to_little(ss.str(),8);
+  ss.str("");
+
+  //input
+  int in_sz = t.vin.size();
+  int exp = compact_exp(in_sz);
   ss<<std::setfill('0')<<std::setw(2*exp)<<in_sz;
   serialised+=ss.str();
+  ss.str("");
+
+  for (int i=0;i<in_sz;i++) {
+    serialised+=t.vin[i].txId;
+    ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.vin[i].vOut;
+    serialised+= big_to_little(ss.str(),8);
+    ss.str("");
+    if (t.is_segwit) {
+      serialised+="00";
+    }
+    else {
+      int script_sz =(t.vin[i].scriptSig).size();
+      exp = compact_exp(script_sz);
+      ss<<std::setfill('0')<<std::setw(2*exp)<<script_sz;
+      serialised+=ss.str();
+      ss.str("");
+
+      serialised += t.vin[i].scriptSig ;
+    }
+    ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.vin[i].sequence;
+    serialised+= big_to_little(ss.str(),8);
+    ss.str("");
+  }
 
   return serialised;
 }
@@ -125,6 +149,11 @@ int main() {
     json data = json::parse(myfile);
     Txn t;
     from_json(data , t);
+    for (int i=0;i<(int)t.vin.size();i++) {
+      if ((t.vin[i].prevout.scriptPubKeyType!="p2pkh")&&(t.vin[i].prevout.scriptPubKeyType!="p2sh")) {
+        t.is_segwit=true;
+      }
+    }
     std::cout<<serialise(t)<<std::endl;
     
     myfile.close();
