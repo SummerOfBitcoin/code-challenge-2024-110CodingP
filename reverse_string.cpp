@@ -3,9 +3,19 @@
 #include <algorithm>
 using namespace std;
 
+string big_to_little(string s, int len) {
+  string little;
+  for (int i=len-1;i>=0;i-=2) {
+    little +=s[i-1];
+    little +=s[i];
+  }
+  return little;
+}
+
 int main() {
-    string hash="d7448824549d43314e84cb8974ec6cb7ae4c3b333b7b7e19f2e97d5401b2c647";
-    reverse(hash.begin(),hash.end());
-    cout<<hash<<endl;
-    return 0;
+  string hash;
+  cin>>hash;
+  cout<<big_to_little(hash,64)<<endl;
+  cout<<hash.size()<<endl;
+  return 0;
 }

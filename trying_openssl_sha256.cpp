@@ -29,10 +29,12 @@ bool computeHash(const std::string& unhashed, std::string& hashed) {
 }
 
 int main() {
-    std::string pw1= "746c2b1045d79e2f91e7b7b333b3c4ea7bc6ce4798bc48e41334d9454288447d",pw1hashed;
+    std::string pw1,pw1hashed,hash;
+    std::cin>>pw1;
     computeHash(pw1, pw1hashed);
-
+    computeHash(pw1hashed, hash);
     std::cout<<pw1hashed<<std::endl;
+    std::cout<<hash<<std::endl;
 
     return 0;
 }

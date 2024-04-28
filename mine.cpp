@@ -1,4 +1,4 @@
-#include <iostream>//damn! the stream is really I/O stream!
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -104,6 +104,8 @@ std::string serialise(Txn t) {
   serialised+=ss.str();
   ss.str("");
 
+  
+
   for (int i=0;i<in_sz;i++) {
     serialised+=t.vin[i].txId;
     ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.vin[i].vOut;
@@ -163,7 +165,7 @@ int main() {
 
   myfile.close();
 
-  for (std::string txn: txns) {//man this outer loop is running approx 8000 times!
+  for (std::string txn: txns) {
     std::string path = "mempool/" + txn;
     myfile.open(path);
     json data = json::parse(myfile);
