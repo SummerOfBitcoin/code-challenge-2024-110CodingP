@@ -3,7 +3,7 @@
   "locktime": 0,
   "vin": [
     {
-      "txid": "a7ed2af034a3904fffeb9ea98f0fed90c683c323e066e6c8e3d0494bbbb5b18c",
+      "txid": "",
       "vout": 0,
       "prevout": {
         "scriptpubkey": "76a91459769a1a9528da6cfd3893b9392290f1f600e67188ac",

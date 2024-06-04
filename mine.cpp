@@ -43,6 +43,7 @@ void from_json(const json& j, Output& p) {
     j.at("scriptpubkey_address").get_to(p.scriptPubKeyAddress);
   }
   j.at("value").get_to(p.amount);
+  p.amount*=100000000;
 }
 
 void from_json(const json& j, Input& p) {
@@ -100,14 +101,14 @@ std::string serialise(Txn t) {
   //inputs
   int in_sz = t.vin.size();
   int exp = compact_exp(in_sz);
-  ss<<std::setfill('0')<<std::setw(2*exp)<<in_sz;
+  ss<<std::setfill('0')<<std::setw(2*exp)<<std::hex<<in_sz;
   serialised+=ss.str();
   ss.str("");
 
   
 
   for (int i=0;i<in_sz;i++) {
-    serialised+=t.vin[i].txId;
+    serialised+=big_to_little(t.vin[i].txId,64);
     ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.vin[i].vOut;
     serialised+= big_to_little(ss.str(),8);
     ss.str("");
@@ -117,7 +118,7 @@ std::string serialise(Txn t) {
     else {
       int script_sz =(t.vin[i].scriptSig).size();
       exp = compact_exp(script_sz);
-      ss<<std::setfill('0')<<std::setw(2*exp)<<script_sz;
+      ss<<std::setfill('0')<<std::setw(2*exp)<<std::hex<<script_sz;
       serialised+=ss.str();
       ss.str("");
 
@@ -131,14 +132,17 @@ std::string serialise(Txn t) {
   //outputs
   int out_sz = t.vout.size();
   exp = compact_exp(out_sz);
-  ss<<std::setfill('0')<<std::setw(2*exp)<<out_sz;
+  ss<<std::setfill('0')<<std::setw(2*exp)<<std::hex<<out_sz;
   serialised+=ss.str();
   ss.str("");
 
   for (int i=0;i<out_sz;i++) {
+    ss<<std::setfill('0')<<std::setw(8)<<std::hex<<t.vout[i].amount;
+    serialised += big_to_little(ss.str(),8);
+    ss.str("");
     int script_pub_sz =(t.vout[i].scriptPubKey).size();
     exp = compact_exp(script_pub_sz);
-    ss<<std::setfill('0')<<std::setw(2*exp)<<script_pub_sz;
+    ss<<std::setfill('0')<<std::setw(2*exp)<<std::hex<<script_pub_sz;
     serialised+=ss.str();
     ss.str("");
 
